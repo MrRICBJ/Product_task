@@ -1,0 +1,31 @@
+POST http://localhost:8000/couriers
+Content-Type: application/json
+
+{
+  "couriers": [
+    {
+      "courier_type": "FOOT",
+      "regions": [
+        0
+      ],
+      "working_hours": [
+        "00:00-00:00"
+      ]
+    },
+    {
+      "courier_type": "hhhh",
+      "regions": [
+        1
+      ],
+      "working_hours": [
+        "00:00-00:00"
+      ]
+    }
+  ]
+}
+
+###
+GET http://localhost:8000/couriers
+
+###
+GET http://localhost:8000/couriers/1

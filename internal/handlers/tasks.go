@@ -14,6 +14,13 @@ func GetOrders(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
+func GetIdOrders(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		statusCode, o := models.GetIdOrders(ctx, c, db)
+		return c.JSON(statusCode, o)
+	}
+}
+
 func PostOrders(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		statusCode, o := models.PostOrders(ctx, c, db)
@@ -21,9 +28,30 @@ func PostOrders(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
-func PostOrdersComplete(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
+//func PostOrdersComplete(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
+//	return func(c echo.Context) error {
+//		statusCode, o := models.PostOrdersComplete(ctx, c, db)
+//		return c.JSON(statusCode, o)
+//	}
+//}
+
+func GetCouriers(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		statusCode, o := models.PostOrdersComplete(ctx, c, db)
+		statusCode, o := models.GetCouriers(ctx, c, db)
+		return c.JSON(statusCode, o)
+	}
+}
+
+func GetIdCouriers(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		statusCode, o := models.GetIdCouriers(ctx, c, db)
+		return c.JSON(statusCode, o)
+	}
+}
+
+func PostCouriers(ctx context.Context, db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		statusCode, o := models.PostCouriers(ctx, c, db)
 		return c.JSON(statusCode, o)
 	}
 }

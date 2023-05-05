@@ -1,4 +1,4 @@
-package dto
+package orders
 
 type CreateOrderDto struct {
 	Weight float32 `json:"weight"`
