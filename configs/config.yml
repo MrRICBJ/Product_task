@@ -1,0 +1,17 @@
+#port: "8000"
+#
+#postgres:
+#	username: "postgres"
+#	host: "localhost"
+#	port: "5432"
+#	dbname: "yandexDB"
+#	password: "2002"
+#	sslmode: disable
+port: "8000"
+
+postgres:
+	username: "postgres"
+	host: "postgres_db"
+	port: "5432"
+	dbname: "postgres"
+	sslmode: disable

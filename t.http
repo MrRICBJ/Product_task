@@ -1,0 +1,26 @@
+POST http://localhost:8000/orders
+Content-Type: application/json
+
+{
+  "orders": [
+    {
+      "weight": 0,
+      "regions": 0,
+      "delivery_hours": [      ],
+      "cost": 0
+    },
+    {
+      "weight": 1,
+      "regions": 1,
+      "delivery_hours": [
+        "string2"
+      ],
+      "cost": 1
+    }
+  ]
+}
+###
+GET http://localhost:8080/orders
+Accept: application/json
+
+###
