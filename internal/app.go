@@ -10,8 +10,8 @@ import (
 func SetupRoutes(ctx context.Context, e *echo.Echo, db *sqlx.DB) {
 	e.GET("/orders", handlers.GetOrders(ctx, db))
 	e.GET("/orders/:order_id", handlers.GetIdOrders(ctx, db))
-	e.POST("/orders/", handlers.PostOrders(ctx, db))
-	//e.POST("/orders/complete", handlers.PostOrdersComplete(ctx, db))
+	e.POST("/orders", handlers.PostOrders(ctx, db))
+	e.POST("/orders/complete", handlers.CreateOrdersComplete(ctx, db))
 
 	e.GET("/couriers", handlers.GetCouriers(ctx, db))
 	e.GET("/couriers/:courier_id", handlers.GetIdCouriers(ctx, db))
