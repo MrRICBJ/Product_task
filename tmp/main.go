@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"sss/internal"
+	"sss/internal/adapters/courier"
+	"sss/internal/adapters/order"
 	"sss/internal/config"
+	dbCour "sss/internal/courier/db"
+	dbOrder "sss/internal/order/db"
 	"sss/pkg/client"
 )
 
@@ -21,13 +23,17 @@ func main() {
 	db := client.New(ctx, cfg)
 	defer db.Close()
 
-	e := setupServer(ctx, db)
+	repositoryOrder := dbOrder.New(db)
+	repositoryCour := dbCour.New(db)
+
+	handlerOrder := order.NewHandler(repositoryOrder)
+	handlerCour := courier.NewHandler(repositoryCour)
+
+	e := echo.New()
+
+	handlerOrder.Register(e)
+	handlerCour.Register(e)
+
 	e.Logger.Fatal(e.Start(":8000"))
 
-}
-
-func setupServer(ctx context.Context, db *sqlx.DB) *echo.Echo {
-	e := echo.New()
-	internal.SetupRoutes(ctx, e, db)
-	return e
 }

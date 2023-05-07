@@ -1,4 +1,4 @@
-package models
+package apperror
 
 type BadRequestResponse struct {
 }

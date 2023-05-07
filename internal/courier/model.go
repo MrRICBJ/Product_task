@@ -1,6 +1,6 @@
-package couriers
+package courier
 
-type CourierDto struct {
+type Courier struct {
 	CourierId int64 `json:"courier_id"`
 
 	CourierType string `json:"courier_type"`
