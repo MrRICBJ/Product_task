@@ -8,7 +8,6 @@ import (
 	"sss/internal/adapters"
 	"sss/internal/apperror"
 	"sss/internal/order"
-	"sss/pkg/lib"
 	"strconv"
 )
 
@@ -34,7 +33,7 @@ func (h *handler) Register(router *echo.Echo) {
 }
 
 func (h *handler) GetAll(c echo.Context) error {
-	limit, offset := lib.GetLimOff(c)
+	limit, offset := apperror.GetLimOff(c)
 	statusCode, o := h.repo.GetAll(context.Background(), limit, offset)
 	return c.JSON(statusCode, o)
 }

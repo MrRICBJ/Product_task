@@ -2,11 +2,15 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"net/http"
 	"sss/internal/apperror"
 	"sss/internal/courier"
+	"sss/internal/order"
+	"time"
 )
 
 type repository struct {
@@ -44,6 +48,43 @@ func (r *repository) GetAll(ctx context.Context, limit, offset int32) (int, inte
 	return http.StatusOK, res
 }
 
+func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) (int, interface{}) {
+	orders := r.getCompletedOrdersForCourier(ctx, id, startDate, endDate)
+	//if err != nil {
+	//	return 0, err
+	//}
+	if len(orders) == 0 {
+		return 0, nil
+	}
+
+	//start := startDate.Format("2006-01-02 00:00:00")
+	//end := endDate.Format("2006-01-02 23:59:59")
+	//earnings := calculateEarnings(orders, )
+	//rating := calculateRating(orders, courierType, startDate, endDate)
+	return http.StatusOK, nil
+}
+
+//func calculateEarnings(orders []order.Order, courierType string) float64 {
+//	var earnings float64
+//	for _, order := range orders {
+//		earnings += order.Cost * getCoefficient(courierType)
+//	}
+//	return earnings
+//}
+
+func getCoefficient(courierType string) float64 {
+	switch courierType {
+	case "foot":
+		return 2
+	case "bike":
+		return 3
+	case "car":
+		return 4
+	default:
+		return 0
+	}
+}
+
 func (r *repository) GetById(ctx context.Context, id int) (int, interface{}) {
 	courOb := courier.Courier{}
 	courOb.CourierId = int64(id)
@@ -74,4 +115,22 @@ func (r *repository) Create(ctx context.Context, cour *courier.CreateCourierRequ
 		courierRes.Couriers = append(courierRes.Couriers, tmp)
 	}
 	return http.StatusOK, courierRes
+}
+
+func (r *repository) getCompletedOrdersForCourier(ctx context.Context, id int, startDate, endDate time.Time) []order.Order {
+	//q := `SELECT * FROM orders WHERE id = $1 AND complete_time IS NOT NULL`
+	q := `SELECT * 
+FROM orders 
+WHERE cour_id = 1 
+AND completed_time IS NOT NULL 
+AND completed_time BETWEEN '2023-05-02 00:00:00' AND '2024-01-06 23:59:59'`
+	var count int
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&count)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		//return http.StatusBadRequest, err ----!!!!!!!!!!!!
+	}
+	return []order.Order{}
 }

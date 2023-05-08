@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sss/internal/apperror"
 	"sss/internal/order"
-	"time"
 )
 
 type repository struct {
@@ -96,38 +95,34 @@ func (r *repository) Create(ctx context.Context, orders *order.CreateOrderReques
 }
 
 func (r *repository) Update(ctx context.Context, orders *order.CompleteOrderRequestDto) (int, interface{}) {
-	orderRes := make([]int64, 0)
-	//orderRes := make([]order.Order, 0)
+	orderRes := make([]order.Order, 0)
+
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return http.StatusBadRequest, apperror.BadRequestResponse{}
 	}
 
-	stmt, err := tx.PrepareContext(ctx, `SELECT completed_time FROM orders WHERE courier_id = $1 AND order_id = $2`)
-	if err != nil {
-		tx.Rollback()
-		return http.StatusBadRequest, apperror.BadRequestResponse{}
-	}
-	defer stmt.Close()
-
 	for _, v := range orders.CompleteInfo {
-		var timeC *time.Time
-		err := stmt.QueryRowContext(ctx, v.CourierId, v.OrderId).Scan(&timeC)
+		q := `SELECT courier_id, order_id, completed_time FROM orders WHERE order_id = $1`
+		var order order.Order
+		err = tx.QueryRowContext(ctx, q, v.OrderId).Scan(&order.CourierId, &order.OrderId, &order.CompletedTime)
 		if err != nil {
 			tx.Rollback()
 			return http.StatusBadRequest, apperror.BadRequestResponse{}
 		}
-		if timeC == nil {
-			r.db.Exec("UPDATE orders SET completed_time = $1 WHERE courier_id = $2 AND order_id = $3", v.CompleteTime, v.CourierId, v.OrderId)
+
+		if order.CourierId == nil || *order.CourierId != v.CourierId {
+			tx.Rollback()
+			return http.StatusBadRequest, apperror.BadRequestResponse{}
 		}
-		//var tmp order.Order{}
-		//tmp.OrderId = int64(orderId)
-		//tmp.Regions = v.
-		//tmp.Weight = v.Weight
-		//tmp.Cost = v.Cost
-		//tmp.DeliveryHours = &v1.DeliveryHours
-		//orderRes = append(orderRes, tmp)
-		orderRes = append(orderRes, v.OrderId)
+
+		q = `UPDATE orders SET completed_time = $1 WHERE courier_id = $2 AND order_id = $3`
+		if order.CompletedTime == nil {
+			tx.Exec(q, v.CompleteTime, v.CourierId, v.OrderId)
+		}
+		order.CourierId = nil
+		order.CompletedTime = nil
+		orderRes = append(orderRes, order)
 	}
 
 	err = tx.Commit()

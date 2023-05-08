@@ -1,9 +1,13 @@
 package order
 
-import "time"
+import (
+	"time"
+)
 
 type Order struct {
 	OrderId int64 `json:"order_id,omitempty"`
+
+	CourierId *int64 `json:"courier_id,omitempty"`
 
 	Weight *float32 `json:"weight,omitempty"`
 

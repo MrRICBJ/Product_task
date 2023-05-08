@@ -8,13 +8,16 @@ import (
 	"sss/internal/adapters"
 	"sss/internal/apperror"
 	"sss/internal/courier"
-	"sss/pkg/lib"
 	"strconv"
+	"time"
 )
 
 const (
 	couriersURL  = "/couriers"
 	courierIdURL = "/couriers/:courier_id"
+	courierMeta  = "/couriers/meta-info/:courier_id"
+	start        = "start_date"
+	end          = "end_date"
 )
 
 type handler struct {
@@ -28,22 +31,38 @@ func NewHandler(repo courier.Repository) adapters.Handler {
 func (h *handler) Register(router *echo.Echo) {
 	router.GET(couriersURL, h.GetAll)
 	router.GET(courierIdURL, h.GetById)
+	router.GET(courierMeta, h.GetMetaInf)
 	router.POST(couriersURL, h.Create)
 }
 
 func (h *handler) GetAll(c echo.Context) error {
-	limit, offset := lib.GetLimOff(c)
+	limit, offset := apperror.GetLimOff(c)
 	statusCode, o := h.repo.GetAll(context.Background(), limit, offset)
 	return c.JSON(statusCode, o)
 }
 
 func (h *handler) GetById(c echo.Context) error {
-	tmpId, err := strconv.Atoi(c.Param("courier_id"))
+	id, err := strconv.Atoi(c.Param("courier_id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 
-	statusCode, o := h.repo.GetById(context.Background(), tmpId)
+	statusCode, o := h.repo.GetById(context.Background(), id)
+	return c.JSON(statusCode, o)
+}
+
+func (h *handler) GetMetaInf(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("courier_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+
+	start, end, err := getStartEnd(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+
+	statusCode, o := h.repo.GetMetaInf(context.Background(), id, *start, *end)
 	return c.JSON(statusCode, o)
 }
 
@@ -56,4 +75,22 @@ func (h *handler) Create(c echo.Context) error {
 
 	statusCode, o := h.repo.Create(context.Background(), &courierReq)
 	return c.JSON(statusCode, o)
+}
+
+func getStartEnd(c echo.Context) (*time.Time, *time.Time, error) {
+	startStr := c.QueryParam(start)
+	endStr := c.QueryParam(end)
+
+	startStr += " 00:00:00"
+	endStr += " 23:59:59"
+	start, err := time.Parse("2006-01-02 15:04:05", startStr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	end, err := time.Parse("2006-01-02 15:04:05", endStr)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &start, &end, nil
 }
