@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"net/http"
@@ -49,7 +47,7 @@ func (r *repository) GetAll(ctx context.Context, limit, offset int32) (int, inte
 }
 
 func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) (int, interface{}) {
-	orders := r.getCompletedOrdersForCourier(ctx, id, startDate, endDate)
+	orders, typeCour := r.getCompletedOrdersForCourier(ctx, id, startDate, endDate)
 	//if err != nil {
 	//	return 0, err
 	//}
@@ -57,28 +55,32 @@ func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate 
 		return 0, nil
 	}
 
-	//start := startDate.Format("2006-01-02 00:00:00")
-	//end := endDate.Format("2006-01-02 23:59:59")
-	//earnings := calculateEarnings(orders, )
-	//rating := calculateRating(orders, courierType, startDate, endDate)
-	return http.StatusOK, nil
+	earnings := calculateEarnings(orders, typeCour)
+	_ = calculateRating(startDate, endDate, getCoefficient(typeCour), int32(len(orders)))
+	return http.StatusOK, earnings
 }
 
-//func calculateEarnings(orders []order.Order, courierType string) float64 {
-//	var earnings float64
-//	for _, order := range orders {
-//		earnings += order.Cost * getCoefficient(courierType)
-//	}
-//	return earnings
-//}
+func calculateRating(start_date, end_date time.Time, c int32, num_orders int32) int32 {
+	hours := end_date.Sub(start_date).Hours()
+	rating := (num_orders / int32(hours)) * c
+	return rating
+}
 
-func getCoefficient(courierType string) float64 {
+func calculateEarnings(orders []order.Order, courierType string) int32 {
+	var earnings int32
+	for _, order := range orders {
+		earnings += *order.Cost * getCoefficient(courierType)
+	}
+	return earnings
+}
+
+func getCoefficient(courierType string) int32 {
 	switch courierType {
-	case "foot":
+	case "FOOT":
 		return 2
-	case "bike":
+	case "BIKE":
 		return 3
-	case "car":
+	case "CAR":
 		return 4
 	default:
 		return 0
@@ -117,20 +119,31 @@ func (r *repository) Create(ctx context.Context, cour *courier.CreateCourierRequ
 	return http.StatusOK, courierRes
 }
 
-func (r *repository) getCompletedOrdersForCourier(ctx context.Context, id int, startDate, endDate time.Time) []order.Order {
-	//q := `SELECT * FROM orders WHERE id = $1 AND complete_time IS NOT NULL`
-	q := `SELECT * 
-FROM orders 
-WHERE cour_id = 1 
-AND completed_time IS NOT NULL 
-AND completed_time BETWEEN '2023-05-02 00:00:00' AND '2024-01-06 23:59:59'`
-	var count int
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&count)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
-		//return http.StatusBadRequest, err ----!!!!!!!!!!!!
-	}
-	return []order.Order{}
+func (r *repository) getCompletedOrdersForCourier(ctx context.Context, id int, startDate, endDate time.Time) ([]order.Order, string) {
+	q := `SELECT order_id, weight, regions, delivery_hours, cost, completed_time 
+			FROM orders 
+			WHERE cour_id = 1 
+			AND completed_time IS NOT NULL 
+			AND completed_time BETWEEN $1 AND $2`
+	//orders := make([]order.Order, 0)
+	var orders []order.Order
+	_ = r.db.SelectContext(ctx, &orders, q, startDate.UTC(), endDate.UTC())
+	//if err != nil {
+	//	if errors.Is(err, sql.ErrNoRows) {
+	//		return nil
+	//	}
+	//	//return http.StatusBadRequest, err ----!!!!!!!!!!!!
+	//}
+
+	var typeCour string
+	q = `SELECT courier_type FROM couriers WHERE courier_id = 1`
+	_ = r.db.QueryRowContext(ctx, q).Scan(&typeCour)
+	//if err != nil {
+	//	if errors.Is(err, sql.ErrNoRows) {
+	//		return nil, nil
+	//	}
+	//	//return http.StatusBadRequest, err ----!!!!!!!!!!!!
+	//}
+
+	return orders, typeCour
 }

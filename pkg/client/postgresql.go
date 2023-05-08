@@ -18,7 +18,7 @@ func New(ctx context.Context, config config.Config) *sqlx.DB {
 }
 
 func dbConnect(ctx context.Context, cfg config.PostgresConfig) (*sqlx.DB, error) {
-	q := "host=localhost port=5432 user=postgres dbname=yandexDB password=2002 sslmode=disable"
+	q := "host=localhost port=5432 user=postgres dbname=yandexDB password=1 sslmode=disable"
 	db, err := sqlx.ConnectContext(ctx, "postgres", q)
 	if err != nil {
 		return nil, err

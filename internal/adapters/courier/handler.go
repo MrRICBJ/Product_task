@@ -16,8 +16,10 @@ const (
 	couriersURL  = "/couriers"
 	courierIdURL = "/couriers/:courier_id"
 	courierMeta  = "/couriers/meta-info/:courier_id"
-	start        = "start_date"
-	end          = "end_date"
+	start        = "startDate"
+	//start        = "start_date"
+	end = "endDate"
+	//end          = "end_date"
 )
 
 type handler struct {
@@ -81,16 +83,18 @@ func getStartEnd(c echo.Context) (*time.Time, *time.Time, error) {
 	startStr := c.QueryParam(start)
 	endStr := c.QueryParam(end)
 
-	startStr += " 00:00:00"
-	endStr += " 23:59:59"
-	start, err := time.Parse("2006-01-02 15:04:05", startStr)
+	start, err := time.Parse("2006-01-02", startStr)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	end, err := time.Parse("2006-01-02 15:04:05", endStr)
+	end, err := time.Parse("2006-01-02", endStr)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	end = end.Add(time.Hour * 23)
+	end = end.Add(time.Minute * 59)
+	end = end.Add(time.Second * 59)
 	return &start, &end, nil
 }

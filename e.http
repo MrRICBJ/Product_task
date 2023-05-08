@@ -1,4 +1,8 @@
-POST http://localhost:80/api/item
+GET http://localhost:8000/couriers/meta-info/1?startDate=2023-01-20&endDate=2024-01-21
+Accept: application/json
+
+###
+GET http://localhost:8000/couriers/meta-info/1?startDate=2023-01-20&endDate=2024-01-21
 Content-Type: application/json
 
 {}
