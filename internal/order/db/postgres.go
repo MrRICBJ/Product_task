@@ -18,28 +18,15 @@ func New(db *sqlx.DB) order.Repository {
 }
 
 func (r *repository) GetAll(ctx context.Context, limit, offset int32) (int, interface{}) {
-	q := `SELECT weight, regions, delivery_hours FROM orders LIMIT $1 OFFSET $2`
-	rows, err := r.db.QueryContext(ctx, q, limit, offset)
+	res := make([]order.Order, 0)
+
+	q := `SELECT order_id, weight, regions, delivery_hours, cost, completed_time FROM orders LIMIT $1 OFFSET $2`
+	err := r.db.SelectContext(ctx, &res, q, limit, offset)
 	if err != nil {
 		return http.StatusBadRequest, apperror.BadRequestResponse{}
 	}
-	defer rows.Close()
 
-	listOrders := make([]order.Order, 0)
-	for rows.Next() {
-		tmp := order.Order{}
-		err = rows.Scan(&tmp.Weight, &tmp.Regions, pq.Array(&tmp.DeliveryHours))
-		if err != nil {
-			return http.StatusBadRequest, apperror.BadRequestResponse{}
-		}
-		listOrders = append(listOrders, tmp)
-	}
-
-	if len(listOrders) == 0 {
-		return http.StatusOK, []order.Order{}
-	}
-
-	return http.StatusOK, listOrders
+	return http.StatusOK, res
 }
 
 func (r *repository) GetById(ctx context.Context, id int) (int, interface{}) {
@@ -79,9 +66,9 @@ func (r *repository) Create(ctx context.Context, orders *order.CreateOrderReques
 		}
 		var tmp order.Order
 		tmp.OrderId = int64(orderId)
-		tmp.Regions = &v1.Regions
-		tmp.Weight = &v1.Weight
-		tmp.Cost = &v1.Cost
+		tmp.Regions = v1.Regions
+		tmp.Weight = v1.Weight
+		tmp.Cost = v1.Cost
 		tmp.DeliveryHours = v1.DeliveryHours ///////////измен
 		orderRes = append(orderRes, tmp)
 	}
@@ -117,11 +104,11 @@ func (r *repository) Update(ctx context.Context, orders *order.CompleteOrderRequ
 		}
 
 		q = `UPDATE orders SET completed_time = $1 WHERE courier_id = $2 AND order_id = $3`
-		if order.CompletedTime == nil {
-			tx.Exec(q, v.CompleteTime, v.CourierId, v.OrderId)
-		}
+		//if order.CompletedTime == nil {----
+		//	tx.Exec(q, v.CompleteTime, v.CourierId, v.OrderId)----
+		//}-----
 		order.CourierId = nil
-		order.CompletedTime = nil
+		//order.CompletedTime = nil------
 		orderRes = append(orderRes, order)
 	}
 

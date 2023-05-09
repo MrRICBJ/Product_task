@@ -46,47 +46,6 @@ func (r *repository) GetAll(ctx context.Context, limit, offset int32) (int, inte
 	return http.StatusOK, res
 }
 
-func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) (int, interface{}) {
-	orders, typeCour := r.getCompletedOrdersForCourier(ctx, id, startDate, endDate)
-	//if err != nil {
-	//	return 0, err
-	//}
-	if len(orders) == 0 {
-		return 0, nil
-	}
-
-	earnings := calculateEarnings(orders, typeCour)
-	_ = calculateRating(startDate, endDate, getCoefficient(typeCour), int32(len(orders)))
-	return http.StatusOK, earnings
-}
-
-func calculateRating(start_date, end_date time.Time, c int32, num_orders int32) int32 {
-	hours := end_date.Sub(start_date).Hours()
-	rating := (num_orders / int32(hours)) * c
-	return rating
-}
-
-func calculateEarnings(orders []order.Order, courierType string) int32 {
-	var earnings int32
-	for _, order := range orders {
-		earnings += *order.Cost * getCoefficient(courierType)
-	}
-	return earnings
-}
-
-func getCoefficient(courierType string) int32 {
-	switch courierType {
-	case "FOOT":
-		return 2
-	case "BIKE":
-		return 3
-	case "CAR":
-		return 4
-	default:
-		return 0
-	}
-}
-
 func (r *repository) GetById(ctx context.Context, id int) (int, interface{}) {
 	courOb := courier.Courier{}
 	courOb.CourierId = int64(id)
@@ -119,31 +78,75 @@ func (r *repository) Create(ctx context.Context, cour *courier.CreateCourierRequ
 	return http.StatusOK, courierRes
 }
 
-func (r *repository) getCompletedOrdersForCourier(ctx context.Context, id int, startDate, endDate time.Time) ([]order.Order, string) {
+func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) (int, interface{}) {
+	var res courier.GetCourierMetaInfoResponse
+	orders, c, err := r.getCompletedOrdersForCourier(ctx, id, startDate, endDate)
+	if err != nil {
+		return http.StatusOK, res
+	}
+
+	res.Earnings = calculateEarnings(orders, c)
+	res.Rating = calculateRating(startDate, endDate, c, int32(len(orders)))
+	return http.StatusOK, res
+}
+
+func calculateRating(startDate, endDate time.Time, c int32, numOrders int32) int32 {
+	hours := endDate.Sub(startDate).Hours()
+	rating := (numOrders / int32(hours)) * c
+	return rating
+}
+
+func calculateEarnings(orders []order.Order, c int32) int32 {
+	var earnings int32
+	for _, order := range orders {
+		earnings += order.Cost * c
+	}
+	return earnings
+}
+
+func (r *repository) getCompletedOrdersForCourier(ctx context.Context, id int, startDate, endDate time.Time) ([]order.Order, int32, error) {
+
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return []order.Order{}, 0, err
+	}
 	q := `SELECT order_id, weight, regions, delivery_hours, cost, completed_time 
 			FROM orders 
-			WHERE cour_id = 1 
+			WHERE cour_id = $1 
 			AND completed_time IS NOT NULL 
-			AND completed_time BETWEEN $1 AND $2`
-	//orders := make([]order.Order, 0)
+			AND completed_time BETWEEN $2 AND $3`
+
 	var orders []order.Order
-	_ = r.db.SelectContext(ctx, &orders, q, startDate.UTC(), endDate.UTC())
-	//if err != nil {
-	//	if errors.Is(err, sql.ErrNoRows) {
-	//		return nil
-	//	}
-	//	//return http.StatusBadRequest, err ----!!!!!!!!!!!!
-	//}
+	err = tx.SelectContext(ctx, &orders, q, id, startDate.UTC(), endDate.UTC())
+	if err != nil {
+		tx.Rollback()
+		return []order.Order{}, 0, err
+	}
 
-	var typeCour string
-	q = `SELECT courier_type FROM couriers WHERE courier_id = 1`
-	_ = r.db.QueryRowContext(ctx, q).Scan(&typeCour)
-	//if err != nil {
-	//	if errors.Is(err, sql.ErrNoRows) {
-	//		return nil, nil
-	//	}
-	//	//return http.StatusBadRequest, err ----!!!!!!!!!!!!
-	//}
+	var cType string
+	q = `SELECT courier_type FROM couriers WHERE courier_id = $1`
+	err = tx.QueryRowContext(ctx, q, id).Scan(&cType)
+	if err != nil {
+		tx.Rollback()
+		return []order.Order{}, 0, err
+	}
 
-	return orders, typeCour
+	err = tx.Commit()
+	if err != nil {
+		return []order.Order{}, 0, err
+	}
+	return orders, getCoefficient(cType), nil
+}
+
+func getCoefficient(courierType string) int32 {
+	switch courierType {
+	case "FOOT":
+		return 2
+	case "BIKE":
+		return 3
+	case "CAR":
+		return 4
+	default:
+		return 0
+	}
 }

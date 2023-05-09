@@ -5,8 +5,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
-	"sss/internal/adapters"
 	"sss/internal/apperror"
+	"sss/internal/controllers"
 	"sss/internal/order"
 	"strconv"
 )
@@ -15,13 +15,15 @@ const (
 	ordersURL    = "/orders"
 	orderIdURL   = "/orders/:order_id"
 	ordersComURL = "/orders/complete"
+	limit        = "limit"
+	offset       = "offset"
 )
 
 type handler struct {
 	repo order.Repository
 }
 
-func NewHandler(repo order.Repository) adapters.Handler {
+func NewHandler(repo order.Repository) controllers.Handler {
 	return &handler{repo: repo}
 }
 
@@ -33,7 +35,11 @@ func (h *handler) Register(router *echo.Echo) {
 }
 
 func (h *handler) GetAll(c echo.Context) error {
-	limit, offset := apperror.GetLimOff(c)
+	limit, offset, err := controllers.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+
 	statusCode, o := h.repo.GetAll(context.Background(), limit, offset)
 	return c.JSON(statusCode, o)
 }

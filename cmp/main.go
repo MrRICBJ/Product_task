@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"github.com/labstack/echo/v4"
-	"sss/internal/adapters/courier"
-	"sss/internal/adapters/order"
 	"sss/internal/config"
+	"sss/internal/controllers/courier"
+	"sss/internal/controllers/order"
 	dbCour "sss/internal/courier/db"
 	dbOrder "sss/internal/order/db"
 	"sss/pkg/client"

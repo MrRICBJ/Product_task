@@ -15,7 +15,7 @@ type CompleteOrderRequestDto struct {
 }
 
 type CreateOrderDto struct {
-	Weight float32 `json:"weight"`
+	Weight float64 `json:"weight"`
 
 	Regions int32 `json:"regions"`
 

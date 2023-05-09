@@ -5,8 +5,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
-	"sss/internal/adapters"
 	"sss/internal/apperror"
+	"sss/internal/controllers"
 	"sss/internal/courier"
 	"strconv"
 	"time"
@@ -17,16 +17,19 @@ const (
 	courierIdURL = "/couriers/:courier_id"
 	courierMeta  = "/couriers/meta-info/:courier_id"
 	start        = "startDate"
+	courId       = "courier_id"
 	//start        = "start_date"
 	end = "endDate"
 	//end          = "end_date"
+	limit  = "limit"
+	offset = "offset"
 )
 
 type handler struct {
 	repo courier.Repository
 }
 
-func NewHandler(repo courier.Repository) adapters.Handler {
+func NewHandler(repo courier.Repository) controllers.Handler {
 	return &handler{repo: repo}
 }
 
@@ -38,13 +41,17 @@ func (h *handler) Register(router *echo.Echo) {
 }
 
 func (h *handler) GetAll(c echo.Context) error {
-	limit, offset := apperror.GetLimOff(c)
+	limit, offset, err := controllers.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+
 	statusCode, o := h.repo.GetAll(context.Background(), limit, offset)
 	return c.JSON(statusCode, o)
 }
 
 func (h *handler) GetById(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("courier_id"))
+	id, err := strconv.Atoi(c.Param(courId))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
@@ -54,7 +61,7 @@ func (h *handler) GetById(c echo.Context) error {
 }
 
 func (h *handler) GetMetaInf(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("courier_id"))
+	id, err := strconv.Atoi(c.Param(courId))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
@@ -64,7 +71,7 @@ func (h *handler) GetMetaInf(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 
-	statusCode, o := h.repo.GetMetaInf(context.Background(), id, *start, *end)
+	statusCode, o := h.repo.GetMetaInf(context.Background(), id, start, end)
 	return c.JSON(statusCode, o)
 }
 
@@ -79,22 +86,22 @@ func (h *handler) Create(c echo.Context) error {
 	return c.JSON(statusCode, o)
 }
 
-func getStartEnd(c echo.Context) (*time.Time, *time.Time, error) {
+func getStartEnd(c echo.Context) (time.Time, time.Time, error) {
 	startStr := c.QueryParam(start)
 	endStr := c.QueryParam(end)
 
 	start, err := time.Parse("2006-01-02", startStr)
 	if err != nil {
-		return nil, nil, err
+		return time.Time{}, time.Time{}, err
 	}
 
 	end, err := time.Parse("2006-01-02", endStr)
 	if err != nil {
-		return nil, nil, err
+		return time.Time{}, time.Time{}, err
 	}
 
-	end = end.Add(time.Hour * 23)
-	end = end.Add(time.Minute * 59)
-	end = end.Add(time.Second * 59)
-	return &start, &end, nil
+	//end = end.Add(time.Hour * 23)
+	//end = end.Add(time.Minute * 59)
+	//end = end.Add(time.Second * 59)
+	return start, end, nil
 }
