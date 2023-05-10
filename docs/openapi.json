@@ -5,147 +5,147 @@
     "version": "1.0"
   },
   "paths": {
-    "/orders": {
-      "get": {
-        "tags": [
-          "order-controller"
-        ],
-        "operationId": "getOrders",
-        "parameters": [
-            {
-              "name": "limit",
-              "in": "query",
-              "description": "Максимальное количество заказов в выдаче. Если параметр не передан, то значение по умолчанию равно 1.",
-              "required": false,
-              "schema": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "example": 10
-            },
-            {
-              "name": "offset",
-              "in": "query",
-              "description": "Количество заказов, которое нужно пропустить для отображения текущей страницы. Если параметр не передан, то значение по умолчанию равно 0.",
-              "required": false,
-              "schema": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "example": 0
-            }
-          ],
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrderDto"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "order-controller"
-        ],
-        "operationId": "createOrder",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrderRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrderDto"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/orders/complete": {
-      "post": {
-        "tags": [
-          "order-controller"
-        ],
-        "operationId": "completeOrder",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CompleteOrderRequestDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrderDto"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
+//    "/orders": {
+//      "get": {
+//        "tags": [
+//          "order-controller"
+//        ],
+//        "operationId": "getOrders",
+//        "parameters": [
+//            {
+//              "name": "limit",
+//              "in": "query",
+//              "description": "Максимальное количество заказов в выдаче. Если параметр не передан, то значение по умолчанию равно 1.",
+//              "required": false,
+//              "schema": {
+//                "type": "integer",
+//                "format": "int32"
+//              },
+//              "example": 10
+//            },
+//            {
+//              "name": "offset",
+//              "in": "query",
+//              "description": "Количество заказов, которое нужно пропустить для отображения текущей страницы. Если параметр не передан, то значение по умолчанию равно 0.",
+//              "required": false,
+//              "schema": {
+//                "type": "integer",
+//                "format": "int32"
+//              },
+//              "example": 0
+//            }
+//          ],
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "type": "array",
+//                  "items": {
+//                    "$ref": "#/components/schemas/OrderDto"
+//                  }
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      },
+//      "post": {
+//        "tags": [
+//          "order-controller"
+//        ],
+//        "operationId": "createOrder",
+//        "requestBody": {
+//          "content": {
+//            "application/json": {
+//              "schema": {
+//                "$ref": "#/components/schemas/CreateOrderRequest"
+//              }
+//            }
+//          },
+//          "required": true
+//        },
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "type": "array",
+//                  "items": {
+//                    "$ref": "#/components/schemas/OrderDto"
+//                  }
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    },
+//    "/orders/complete": {
+//      "post": {
+//        "tags": [
+//          "order-controller"
+//        ],
+//        "operationId": "completeOrder",
+//        "requestBody": {
+//          "content": {
+//            "application/json": {
+//              "schema": {
+//                "$ref": "#/components/schemas/CompleteOrderRequestDto"
+//              }
+//            }
+//          },
+//          "required": true
+//        },
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "type": "array",
+//                  "items": {
+//                    "$ref": "#/components/schemas/OrderDto"
+//                  }
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    },
     "/orders/assign": {
       "post": {
         "tags": [
@@ -245,202 +245,202 @@
         }
       }
     },
-    "/couriers": {
-      "get": {
-        "tags": [
-          "courier-controller"
-        ],
-        "operationId": "getCouriers",
-        "parameters": [
-            {
-              "name": "limit",
-              "in": "query",
-              "description": "Максимальное количество курьеров в выдаче. Если параметр не передан, то значение по умолчанию равно 1.",
-              "required": false,
-              "schema": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "example": 10
-            },
-            {
-              "name": "offset",
-              "in": "query",
-              "description": "Количество курьеров, которое нужно пропустить для отображения текущей страницы. Если параметр не передан, то значение по умолчанию равно 0.",
-              "required": false,
-              "schema": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "example": 0
-            }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetCouriersResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "courier-controller"
-        ],
-        "operationId": "createCourier",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCourierRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateCouriersResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/orders/{order_id}": {
-      "get": {
-        "tags": [
-          "order-controller"
-        ],
-        "operationId": "getOrder",
-        "parameters": [
-          {
-            "name": "order_id",
-            "in": "path",
-            "description": "Order identifier",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/couriers/{courier_id}": {
-      "get": {
-        "tags": [
-          "courier-controller"
-        ],
-        "operationId": "getCourierById",
-        "parameters": [
-          {
-            "name": "courier_id",
-            "in": "path",
-            "description": "Courier identifier",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CourierDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
+//    "/couriers": {
+//      "get": {
+//        "tags": [
+//          "courier-controller"
+//        ],
+//        "operationId": "getCouriers",
+//        "parameters": [
+//            {
+//              "name": "limit",
+//              "in": "query",
+//              "description": "Максимальное количество курьеров в выдаче. Если параметр не передан, то значение по умолчанию равно 1.",
+//              "required": false,
+//              "schema": {
+//                "type": "integer",
+//                "format": "int32"
+//              },
+//              "example": 10
+//            },
+//            {
+//              "name": "offset",
+//              "in": "query",
+//              "description": "Количество курьеров, которое нужно пропустить для отображения текущей страницы. Если параметр не передан, то значение по умолчанию равно 0.",
+//              "required": false,
+//              "schema": {
+//                "type": "integer",
+//                "format": "int32"
+//              },
+//              "example": 0
+//            }
+//        ],
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/GetCouriersResponse"
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      },
+//      "post": {
+//        "tags": [
+//          "courier-controller"
+//        ],
+//        "operationId": "createCourier",
+//        "requestBody": {
+//          "content": {
+//            "application/json": {
+//              "schema": {
+//                "$ref": "#/components/schemas/CreateCourierRequest"
+//              }
+//            }
+//          },
+//          "required": true
+//        },
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/CreateCouriersResponse"
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    },
+//    "/orders/{order_id}": {
+//      "get": {
+//        "tags": [
+//          "order-controller"
+//        ],
+//        "operationId": "getOrder",
+//        "parameters": [
+//          {
+//            "name": "order_id",
+//            "in": "path",
+//            "description": "Order identifier",
+//            "required": true,
+//            "schema": {
+//              "type": "integer",
+//              "format": "int64"
+//            }
+//          }
+//        ],
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/OrderDto"
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          },
+//          "404": {
+//            "description": "not found",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/NotFoundResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    },
+//    "/couriers/{courier_id}": {
+//      "get": {
+//        "tags": [
+//          "courier-controller"
+//        ],
+//        "operationId": "getCourierById",
+//        "parameters": [
+//          {
+//            "name": "courier_id",
+//            "in": "path",
+//            "description": "Courier identifier",
+//            "required": true,
+//            "schema": {
+//              "type": "integer",
+//              "format": "int64"
+//            }
+//          }
+//        ],
+//        "responses": {
+//          "200": {
+//            "description": "ok",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/CourierDto"
+//                }
+//              }
+//            }
+//          },
+//          "400": {
+//            "description": "bad request",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/BadRequestResponse"
+//                }
+//              }
+//            }
+//          },
+//          "404": {
+//            "description": "not found",
+//            "content": {
+//              "application/json": {
+//                "schema": {
+//                  "$ref": "#/components/schemas/NotFoundResponse"
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    },
     "/couriers/meta-info/{courier_id}": {
       "get": {
         "tags": [

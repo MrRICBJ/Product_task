@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/labstack/echo/v4"
 	"sss/internal/config"
-	"sss/internal/controllers/courier"
-	"sss/internal/controllers/order"
-	dbCour "sss/internal/courier/db"
-	dbOrder "sss/internal/order/db"
+	"sss/internal/controllers/v1"
+	"sss/internal/repository/courier"
+	"sss/internal/repository/order"
+	"sss/internal/service"
 	"sss/pkg/client"
 )
 
@@ -23,11 +23,14 @@ func main() {
 	db := client.New(ctx, cfg)
 	defer db.Close()
 
-	repositoryOrder := dbOrder.New(db)
-	repositoryCour := dbCour.New(db)
+	repositoryOrder := order.NewOrderRero(db)
+	repositoryCour := courier.NewCourRepo(db)
 
-	handlerOrder := order.NewHandler(repositoryOrder)
-	handlerCour := courier.NewHandler(repositoryCour)
+	orderService := service.NewOrderService(repositoryOrder)
+	courService := service.NewCourService(repositoryCour)
+
+	handlerOrder := v1.NewOrderHandler(orderService)
+	handlerCour := v1.NewCourHandler(courService)
 
 	e := echo.New()
 

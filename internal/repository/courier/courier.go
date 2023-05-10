@@ -1,13 +1,10 @@
-package repository
+package courier
 
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"net/http"
-	"sss/internal/apperror"
-	"sss/internal/courier"
-	"sss/internal/order"
+	"sss/internal/controllers/dto"
 	"time"
 )
 
@@ -15,138 +12,107 @@ type repository struct {
 	db *sqlx.DB
 }
 
-func New(db *sqlx.DB) CourRepository {
+func NewCourRepo(db *sqlx.DB) Repo {
 	return &repository{db: db}
 }
 
-func (r *repository) GetAll(ctx context.Context, limit, offset int32) (int, interface{}) {
+func (r *repository) GetAll(ctx context.Context, limit, offset int32) ([]dto.CourierDto, error) {
 	q := `SELECT * FROM couriers LIMIT $1 OFFSET $2`
 	rows, err := r.db.QueryContext(ctx, q, limit, offset)
 	if err != nil {
-		return http.StatusBadRequest, apperror.BadRequestResponse{}
+		return nil, err
 	}
 	defer rows.Close()
 
-	res := courier.GetCouriersResponse{}
-	res.Couriers = make([]courier.Courier, 0)
-	res.Offset = offset
-	res.Limit = limit
+	res := make([]dto.CourierDto, 0)
 	for rows.Next() {
-		tmp := courier.Courier{}
+		tmp := dto.CourierDto{}
 		err = rows.Scan(&tmp.CourierId, &tmp.CourierType, pq.Array(&tmp.Regions), pq.Array(&tmp.WorkingHours))
 		if err != nil {
-			return http.StatusBadRequest, apperror.BadRequestResponse{}
+			return nil, err
 		}
-		res.Couriers = append(res.Couriers, tmp)
+		res = append(res, tmp)
 	}
 
-	if len(res.Couriers) == 0 {
-		return http.StatusOK, []courier.Courier{}
-	}
-	return http.StatusOK, res
+	return res, nil
 }
 
-func (r *repository) GetById(ctx context.Context, id int) (int, interface{}) {
-	courOb := courier.Courier{}
-	courOb.CourierId = int64(id)
+func (r *repository) GetById(ctx context.Context, id int64) (*dto.CourierDto, error) {
+	cour := dto.CourierDto{}
 
-	q := `SELECT courier_type, regions, working_hours FROM couriers WHERE courier_id = $1`
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&courOb.CourierType, &courOb.Regions, &courOb.WorkingHours)
+	q := `SELECT courier_id, courier_type, regions, working_hours FROM couriers WHERE courier_id = $1`
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&cour.CourierId, &cour.CourierType, &cour.Regions, &cour.WorkingHours)
 	if err != nil {
-		return http.StatusNotFound, apperror.NotFoundResponse{}
+		return nil, err
 	}
 
-	return http.StatusOK, courOb
+	return &cour, nil
 }
 
-func (r *repository) Create(ctx context.Context, cour *courier.CreateCourierRequest) (int, interface{}) {
-	courierRes := courier.CreateCouriersResponse{}
-	courierRes.Couriers = make([]courier.Courier, 0, len(cour.Couriers))
+func (r *repository) Create(ctx context.Context, cour *dto.CreateCourierRequest) ([]dto.CourierDto, error) {
+	couriers := make([]dto.CourierDto, 0)
 
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := `INSERT INTO couriers (courier_type, regions, working_hours) VALUES ($1, $2, $3) RETURNING courier_id`
+	var id int64
 	for _, v := range cour.Couriers {
-		q := `INSERT INTO couriers (courier_type, regions, working_hours) VALUES ($1, $2, $3)`
-		_, err := r.db.ExecContext(ctx, q, v.CourierType, pq.Array(v.Regions), pq.Array(v.WorkingHours))
+		err := tx.QueryRowContext(ctx, q, v.CourierType, pq.Array(v.Regions), pq.Array(v.WorkingHours)).Scan(&id)
 		if err != nil {
-			return http.StatusBadRequest, apperror.BadRequestResponse{}
+			tx.Rollback()
+			return nil, err
 		}
-		var tmp courier.Courier
+
+		tmp := dto.CourierDto{}
+		tmp.CourierId = id
 		tmp.Regions = v.Regions
 		tmp.WorkingHours = v.WorkingHours
 		tmp.CourierType = v.CourierType
-		courierRes.Couriers = append(courierRes.Couriers, tmp)
-	}
-	return http.StatusOK, courierRes
-}
-
-func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) (int, interface{}) {
-	var res courier.GetCourierMetaInfoResponse
-	orders, c, err := r.getCompletedOrdersForCourier(ctx, id, startDate, endDate)
-	if err != nil {
-		return http.StatusOK, res
-	}
-
-	res.Earnings = calculateEarnings(orders, c)
-	res.Rating = calculateRating(startDate, endDate, c, int32(len(orders)))
-	return http.StatusOK, res
-}
-
-func calculateRating(startDate, endDate time.Time, c int32, numOrders int32) int32 {
-	hours := endDate.Sub(startDate).Hours()
-	rating := (numOrders / int32(hours)) * c
-	return rating
-}
-
-func calculateEarnings(orders []order.Order, c int32) int32 {
-	var earnings int32
-	for _, order := range orders {
-		earnings += order.Cost * c
-	}
-	return earnings
-}
-
-func (r *repository) getCompletedOrdersForCourier(ctx context.Context, id int, startDate, endDate time.Time) ([]order.Order, int32, error) {
-
-	tx, err := r.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return []order.Order{}, 0, err
-	}
-	q := `SELECT order_id, weight, regions, delivery_hours, cost, completed_time 
-			FROM orders 
-			WHERE cour_id = $1 
-			AND completed_time IS NOT NULL 
-			AND completed_time BETWEEN $2 AND $3`
-
-	var orders []order.Order
-	err = tx.SelectContext(ctx, &orders, q, id, startDate.UTC(), endDate.UTC())
-	if err != nil {
-		tx.Rollback()
-		return []order.Order{}, 0, err
-	}
-
-	var cType string
-	q = `SELECT courier_type FROM couriers WHERE courier_id = $1`
-	err = tx.QueryRowContext(ctx, q, id).Scan(&cType)
-	if err != nil {
-		tx.Rollback()
-		return []order.Order{}, 0, err
+		couriers = append(couriers, tmp)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return []order.Order{}, 0, err
+		return nil, err
 	}
-	return orders, getCoefficient(cType), nil
+
+	return couriers, nil
 }
 
-func getCoefficient(courierType string) int32 {
-	switch courierType {
-	case "FOOT":
-		return 2
-	case "BIKE":
-		return 3
-	case "CAR":
-		return 4
-	default:
-		return 0
+func (r *repository) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) ([]int32, *dto.GetCourierMetaInfoResponse, error) {
+	costsList := make([]int32, 0)
+	res := dto.GetCourierMetaInfoResponse{}
+
+	q := `SELECT o.cost, c.*
+FROM orders o
+JOIN couriers c ON o.cour_id = c.courier_id
+WHERE o.completed_time >= $1
+AND o.completed_time < $2
+AND o.cour_id = $3;`
+
+	rows, _ := r.db.QueryContext(ctx, q, startDate, endDate)
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+	rows.Close()
+
+	for rows.Next() {
+		var cost int32
+		_ = rows.Scan(&cost, &res.CourierId, &res.CourierType, &res.Regions, &res.WorkingHours)
+		//if err != nil {
+		//	return nil, nil, err
+		//}
+		costsList = append(costsList, cost)
 	}
+
+	return costsList, &res, nil
 }
+
+//err = tx.SelectContext(ctx, &orders, q, id, startDate.UTC(), endDate.UTC())
+//if err != nil {
+//	tx.Rollback()
+//	return []entity.Order{}, 0, err
+//}

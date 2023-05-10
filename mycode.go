@@ -1719,7 +1719,7 @@ func ParseGetOrderResponse(rsp *http.Response) (*GetOrderResponse, error) {
 	return response, nil
 }
 
-// ServerInterface represents all server handlers.
+// ServerInterface represents all server controllers.
 type ServerInterface interface {
 
 	// (GET /couriers)
@@ -1962,7 +1962,7 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 	RegisterHandlersWithBaseURL(router, si, "")
 }
 
-// Registers handlers, and prepends BaseURL to the paths, so that the paths
+// Registers controllers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
 

@@ -6,8 +6,9 @@ import (
 	"log"
 	"net/http"
 	"sss/internal/apperror"
-	"sss/internal/entity"
-	order2 "sss/internal/repository/order"
+	"sss/internal/controllers/dto"
+	"sss/internal/controllers/v1/utils"
+	"sss/internal/service"
 	"strconv"
 )
 
@@ -17,63 +18,76 @@ const (
 	ordersComURL = "/orders/complete"
 	limit        = "limit"
 	offset       = "offset"
+	orderId      = "order_id"
 )
 
 type handler struct {
-	repo order2.OrderRepo
+	service service.OrderService
 }
 
-func NewHandler(repo order2.OrderRepo) handler.Handler {
-	return &handler{repo: repo}
+func NewOrderHandler(service service.OrderService) Handler {
+	return &handler{service: service}
 }
 
 func (h *handler) Register(router *echo.Echo) {
 	router.GET(ordersURL, h.getOrders)
-	router.GET(orderIdURL, h.GetById)
-	router.POST(ordersURL, h.Create)
-	router.POST(ordersComURL, h.UpdateComplete)
+	router.GET(orderIdURL, h.getOrder)
+	router.POST(ordersURL, h.createOrder)
+	router.POST(ordersComURL, h.completeOrder)
 }
 
 func (h *handler) getOrders(c echo.Context) error {
-	limit, offset, err := handler.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
+	limit, offset, err := utils.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 
-	statusCode, o := h.repo.GetAll(context.Background(), limit, offset)
-	return c.JSON(statusCode, o)
+	result, err := h.service.GetOrders(context.Background(), limit, offset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+	return c.JSON(http.StatusOK, result)
 }
 
-func (h *handler) GetById(c echo.Context) error {
-	tmpId, err := strconv.Atoi(c.Param("order_id"))
+func (h *handler) getOrder(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param(orderId))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 
-	statusCode, o := h.repo.GetById(context.Background(), tmpId)
-	return c.JSON(statusCode, o)
+	result, err := h.service.GetOrder(context.Background(), int64(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, apperror.NotFoundResponse{})
+	}
+	return c.JSON(http.StatusOK, result)
 }
 
-func (h *handler) Create(c echo.Context) error {
-	orderReq := entity.CreateOrderRequest{}
+func (h *handler) createOrder(c echo.Context) error {
+	orderReq := dto.CreateOrderRequest{}
 
 	err := c.Bind(&orderReq)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	statusCode, o := h.repo.Create(context.Background(), &orderReq)
-	return c.JSON(statusCode, o)
+	result, err := h.service.CreateOrders(context.Background(), orderReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+	return c.JSON(http.StatusOK, result)
 }
 
-func (h *handler) UpdateComplete(c echo.Context) error {
-	orderReq := entity.CompleteOrderRequestDto{}
+func (h *handler) completeOrder(c echo.Context) error {
+	orderReq := dto.CompleteOrderRequestDto{}
 
 	err := c.Bind(&orderReq)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	statusCode, o := h.repo.Update(context.Background(), &orderReq)
-	return c.JSON(statusCode, o)
+	result, err := h.service.CompleteOrders(context.Background(), orderReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+	return c.JSON(http.StatusOK, result)
 }
