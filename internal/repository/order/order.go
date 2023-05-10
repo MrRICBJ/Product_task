@@ -1,4 +1,4 @@
-package db
+package repository
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type repository struct {
 	db *sqlx.DB
 }
 
-func New(db *sqlx.DB) order.Repository {
+func New(db *sqlx.DB) OrderRepository {
 	return &repository{db: db}
 }
 

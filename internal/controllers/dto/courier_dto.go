@@ -1,4 +1,4 @@
-package courier
+package entity
 
 type CreateCourierDto struct {
 	CourierType string `json:"courier_type"`

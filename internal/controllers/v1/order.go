@@ -1,4 +1,4 @@
-package order
+package v1
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"sss/internal/apperror"
-	"sss/internal/controllers"
-	"sss/internal/order"
+	"sss/internal/entity"
+	order2 "sss/internal/repository/order"
 	"strconv"
 )
 
@@ -20,22 +20,22 @@ const (
 )
 
 type handler struct {
-	repo order.Repository
+	repo order2.OrderRepo
 }
 
-func NewHandler(repo order.Repository) controllers.Handler {
+func NewHandler(repo order2.OrderRepo) handler.Handler {
 	return &handler{repo: repo}
 }
 
 func (h *handler) Register(router *echo.Echo) {
-	router.GET(ordersURL, h.GetAll)
+	router.GET(ordersURL, h.getOrders)
 	router.GET(orderIdURL, h.GetById)
 	router.POST(ordersURL, h.Create)
 	router.POST(ordersComURL, h.UpdateComplete)
 }
 
-func (h *handler) GetAll(c echo.Context) error {
-	limit, offset, err := controllers.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
+func (h *handler) getOrders(c echo.Context) error {
+	limit, offset, err := handler.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
@@ -55,7 +55,7 @@ func (h *handler) GetById(c echo.Context) error {
 }
 
 func (h *handler) Create(c echo.Context) error {
-	orderReq := order.CreateOrderRequest{}
+	orderReq := entity.CreateOrderRequest{}
 
 	err := c.Bind(&orderReq)
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *handler) Create(c echo.Context) error {
 }
 
 func (h *handler) UpdateComplete(c echo.Context) error {
-	orderReq := order.CompleteOrderRequestDto{}
+	orderReq := entity.CompleteOrderRequestDto{}
 
 	err := c.Bind(&orderReq)
 	if err != nil {

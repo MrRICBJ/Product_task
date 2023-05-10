@@ -1,4 +1,4 @@
-package order
+package models
 
 import (
 	"database/sql/driver"

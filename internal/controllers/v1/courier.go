@@ -1,4 +1,4 @@
-package courier
+package v1
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"sss/internal/apperror"
-	"sss/internal/controllers"
-	"sss/internal/courier"
+	"sss/internal/entity"
+	courier2 "sss/internal/repository/courier"
 	"strconv"
 	"time"
 )
@@ -26,10 +26,10 @@ const (
 )
 
 type handler struct {
-	repo courier.Repository
+	repo courier2.CourRepo
 }
 
-func NewHandler(repo courier.Repository) controllers.Handler {
+func NewHandler(repo courier2.CourRepo) handler.Handler {
 	return &handler{repo: repo}
 }
 
@@ -41,7 +41,7 @@ func (h *handler) Register(router *echo.Echo) {
 }
 
 func (h *handler) GetAll(c echo.Context) error {
-	limit, offset, err := controllers.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
+	limit, offset, err := handler.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
@@ -76,7 +76,7 @@ func (h *handler) GetMetaInf(c echo.Context) error {
 }
 
 func (h *handler) Create(c echo.Context) error {
-	courierReq := courier.CreateCourierRequest{}
+	courierReq := entity.CreateCourierRequest{}
 	err := c.Bind(&courierReq)
 	if err != nil {
 		log.Fatal(err)
