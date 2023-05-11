@@ -92,7 +92,7 @@ func (h *courHandler) getCourierMetaInfo(c echo.Context) error {
 	//	return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	//}
 
-	result, _ := h.service.GetCourierMetaInfo(context.Background(), id, start, end)
+	result, _ := h.service.GetCourierMetaInfo(context.Background(), int64(id), start, end)
 	return c.JSON(http.StatusOK, result)
 }
 

@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 	dto "sss/internal/controllers/dto"
+	entity "sss/internal/entity"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -36,10 +37,10 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepo) Create(ctx context.Context, orders dto.CreateOrderRequest) ([]dto.OrderDto, error) {
+func (m *MockRepo) Create(ctx context.Context, orders *dto.CreateOrderRequest) ([]entity.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, orders)
-	ret0, _ := ret[0].([]dto.OrderDto)
+	ret0, _ := ret[0].([]entity.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +52,10 @@ func (mr *MockRepoMockRecorder) Create(ctx, orders interface{}) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockRepo) GetAll(ctx context.Context, limit, offset int32) ([]dto.OrderDto, error) {
+func (m *MockRepo) GetAll(ctx context.Context, limit, offset int32) ([]entity.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx, limit, offset)
-	ret0, _ := ret[0].([]dto.OrderDto)
+	ret0, _ := ret[0].([]entity.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +67,10 @@ func (mr *MockRepoMockRecorder) GetAll(ctx, limit, offset interface{}) *gomock.C
 }
 
 // GetById mocks base method.
-func (m *MockRepo) GetById(ctx context.Context, id int64) (dto.OrderDto, error) {
+func (m *MockRepo) GetById(ctx context.Context, id int64) (*entity.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", ctx, id)
-	ret0, _ := ret[0].(dto.OrderDto)
+	ret0, _ := ret[0].(*entity.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,10 +82,10 @@ func (mr *MockRepoMockRecorder) GetById(ctx, id interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockRepo) Update(ctx context.Context, orders dto.CompleteOrderRequestDto) ([]dto.OrderDto, error) {
+func (m *MockRepo) Update(ctx context.Context, orders []entity.CompleteOrder) ([]entity.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, orders)
-	ret0, _ := ret[0].([]dto.OrderDto)
+	ret0, _ := ret[0].([]entity.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

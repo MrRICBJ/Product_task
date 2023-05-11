@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"sss/internal/controllers/dto"
+	"sss/internal/controllers/v1/utils"
 	"sss/internal/repository/courier"
 	"time"
 )
@@ -11,7 +12,7 @@ type CourService interface {
 	GetCouriers(ctx context.Context, limit, offset int32) (*dto.GetCouriersResponse, error)
 	CreateCourier(ctx context.Context, cour *dto.CreateCourierRequest) (*dto.CreateCouriersResponse, error)
 	GetCourierById(ctx context.Context, id int64) (*dto.CourierDto, error)
-	GetCourierMetaInfo(ctx context.Context, id int, startDate, endDate time.Time) (*dto.GetCourierMetaInfoResponse, error)
+	GetCourierMetaInfo(ctx context.Context, id int64, startDate, endDate time.Time) (*dto.GetCourierMetaInfoResponse, error)
 }
 
 type courService struct {
@@ -23,29 +24,28 @@ func NewCourService(repo courier.Repo) CourService {
 }
 
 func (s *courService) GetCouriers(ctx context.Context, limit, offset int32) (*dto.GetCouriersResponse, error) {
-	var res dto.GetCouriersResponse
-	var err error
+	var result dto.GetCouriersResponse
 
-	res.Couriers, err = s.repo.GetAll(ctx, limit, offset)
+	cour, err := s.repo.GetAll(ctx, limit, offset)
 	if err != nil {
 		return nil, err
 	}
-	res.Offset = offset
-	res.Limit = limit
+	result.Couriers = utils.ConvertToCourierDto(cour)
+	result.Offset = offset
+	result.Limit = limit
 
-	return &res, nil
+	return &result, nil
 }
 
 func (s *courService) CreateCourier(ctx context.Context, cour *dto.CreateCourierRequest) (*dto.CreateCouriersResponse, error) {
-	res := dto.CreateCouriersResponse{}
-	var err error
+	result := dto.CreateCouriersResponse{}
 
-	res.Couriers, err = s.repo.Create(ctx, cour)
+	cours, err := s.repo.Create(ctx, cour)
 	if err != nil {
 		return nil, err
 	}
-
-	return &res, nil
+	result.Couriers = utils.ConvertToCourierDto(cours)
+	return &result, nil
 }
 
 func (s *courService) GetCourierById(ctx context.Context, id int64) (*dto.CourierDto, error) {
@@ -54,17 +54,30 @@ func (s *courService) GetCourierById(ctx context.Context, id int64) (*dto.Courie
 		return nil, err
 	}
 
-	return result, nil
+	return &dto.CourierDto{
+		CourierId:    result.CourierId,
+		CourierType:  result.CourierType,
+		Regions:      result.Regions,
+		WorkingHours: []string(result.WorkingHours),
+	}, nil
 }
 
-func (s *courService) GetCourierMetaInfo(ctx context.Context, id int, startDate, endDate time.Time) (*dto.GetCourierMetaInfoResponse, error) {
-	costs, result, err := s.repo.GetMetaInf(ctx, id, startDate, endDate)
+func (s *courService) GetCourierMetaInfo(ctx context.Context, id int64, startDate, endDate time.Time) (*dto.GetCourierMetaInfoResponse, error) {
+	result := dto.GetCourierMetaInfoResponse{}
+	costs, cours, _ := s.repo.GetMetaInf(ctx, id, startDate, endDate)
 	//if err != nil {
 	//	.....
 	//}
+	result.CourierId = cours.CourierId
+	result.CourierType = cours.CourierType
+	result.Regions = cours.Regions
+	result.WorkingHours = cours.WorkingHours
+	if len(costs) == 0 {
+		return &result, nil
+	}
 	result.Rating = calculateRating(startDate, endDate, getCoefficient(result.CourierType), int32(len(costs)))
 	result.Earnings = calculateEarnings(costs, getCoefficient(result.CourierType))
-	return result, err
+	return &result, nil
 }
 
 func calculateRating(startDate, endDate time.Time, c int32, numOrders int32) int32 {

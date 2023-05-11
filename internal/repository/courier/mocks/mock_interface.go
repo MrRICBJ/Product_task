@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 	dto "sss/internal/controllers/dto"
+	entity "sss/internal/entity"
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
@@ -37,10 +38,10 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepo) Create(ctx context.Context, cour *dto.CreateCourierRequest) ([]dto.CourierDto, error) {
+func (m *MockRepo) Create(ctx context.Context, cour *dto.CreateCourierRequest) ([]entity.Courier, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, cour)
-	ret0, _ := ret[0].([]dto.CourierDto)
+	ret0, _ := ret[0].([]entity.Courier)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,10 +53,10 @@ func (mr *MockRepoMockRecorder) Create(ctx, cour interface{}) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockRepo) GetAll(ctx context.Context, limit, offset int32) ([]dto.CourierDto, error) {
+func (m *MockRepo) GetAll(ctx context.Context, limit, offset int32) ([]entity.Courier, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx, limit, offset)
-	ret0, _ := ret[0].([]dto.CourierDto)
+	ret0, _ := ret[0].([]entity.Courier)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -67,10 +68,10 @@ func (mr *MockRepoMockRecorder) GetAll(ctx, limit, offset interface{}) *gomock.C
 }
 
 // GetById mocks base method.
-func (m *MockRepo) GetById(ctx context.Context, id int64) (*dto.CourierDto, error) {
+func (m *MockRepo) GetById(ctx context.Context, id int64) (*entity.Courier, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", ctx, id)
-	ret0, _ := ret[0].(*dto.CourierDto)
+	ret0, _ := ret[0].(*entity.Courier)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -82,11 +83,11 @@ func (mr *MockRepoMockRecorder) GetById(ctx, id interface{}) *gomock.Call {
 }
 
 // GetMetaInf mocks base method.
-func (m *MockRepo) GetMetaInf(ctx context.Context, id int, startDate, endDate time.Time) ([]int32, *dto.GetCourierMetaInfoResponse, error) {
+func (m *MockRepo) GetMetaInf(ctx context.Context, id int64, startDate, endDate time.Time) ([]int32, *entity.Courier, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMetaInf", ctx, id, startDate, endDate)
 	ret0, _ := ret[0].([]int32)
-	ret1, _ := ret[1].(*dto.GetCourierMetaInfoResponse)
+	ret1, _ := ret[1].(*entity.Courier)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
