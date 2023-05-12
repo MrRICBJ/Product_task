@@ -15,6 +15,7 @@ const (
 	ordersURL    = "/orders"
 	orderIdURL   = "/orders/:order_id"
 	ordersComURL = "/orders/complete"
+	ordersAssign = "/orders/assign"
 	limit        = "limit"
 	offset       = "offset"
 	orderId      = "order_id"
@@ -33,7 +34,18 @@ func (h *handler) Register(router *echo.Echo) {
 	router.GET(orderIdURL, h.getOrder)
 	router.POST(ordersURL, h.createOrder)
 	router.POST(ordersComURL, h.completeOrder)
+
+	//router.POST(ordersAssign, h.)
 }
+
+//func (h *handler) ordersAssign(c echo.Context) {
+//	dataStr := c.QueryParam("date")
+//	if dataStr == "" {
+//		data := time.Time{}
+//	} else {
+//		data =
+//	}
+//}
 
 func (h *handler) getOrders(c echo.Context) error {
 	limit, offset, err := utils.GetLimOff(c.QueryParam(limit), c.QueryParam(offset))

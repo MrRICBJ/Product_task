@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
+	"os"
 )
 
 type Config struct {
@@ -30,9 +31,11 @@ func New() Config {
 			Host:     viper.GetString("postgres.host"),
 			Port:     viper.GetString("postgres.port"),
 			Username: viper.GetString("postgres.username"),
-			Password: viper.GetString("postgres.password"),
+			Password: os.Getenv("DB_PASSWORD"),
 			DBName:   viper.GetString("postgres.dbname"),
 			SSLMode:  viper.GetString("postgres.sslmode"),
 		},
 	}
 }
+
+//password
