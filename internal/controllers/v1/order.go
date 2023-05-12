@@ -55,7 +55,7 @@ func (h *handler) getOrders(c echo.Context) error {
 
 	result, err := h.service.GetOrders(context.Background(), limit, offset)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 	return c.JSON(http.StatusOK, result)
 }
@@ -68,7 +68,7 @@ func (h *handler) getOrder(c echo.Context) error {
 
 	result, err := h.service.GetOrder(context.Background(), int64(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, apperror.NotFoundResponse{})
+		return c.JSON(http.StatusNotFound, apperror.NotFoundResponse{})
 	}
 	return c.JSON(http.StatusOK, result)
 }
@@ -81,7 +81,7 @@ func (h *handler) createOrder(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 
-	if err := utils.Validation(&orderReq); err != nil {
+	if err := utils.ValidationOrder(&orderReq); err != nil {
 		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 

@@ -32,6 +32,6 @@ type GetCourierMetaInfoResponse struct {
 	CourierType  string   `json:"courier_type"`
 	Regions      []int32  `json:"regions"`
 	WorkingHours []string `json:"working_hours"`
-	Rating       int32    `json:"rating,omitempty"`
-	Earnings     int32    `json:"earnings,omitempty"`
+	Rating       *int32   `json:"rating,omitempty"`
+	Earnings     *int32   `json:"earnings,omitempty"`
 }

@@ -80,18 +80,18 @@ func (s *courService) GetCourierMetaInfo(ctx context.Context, id int64, startDat
 	return &result, nil
 }
 
-func calculateRating(startDate, endDate time.Time, c int32, numOrders int32) int32 {
+func calculateRating(startDate, endDate time.Time, c int32, numOrders int32) *int32 {
 	hours := endDate.Sub(startDate).Hours()
 	rating := (numOrders / int32(hours)) * c
-	return rating
+	return &rating
 }
 
-func calculateEarnings(costs []int32, c int32) int32 {
+func calculateEarnings(costs []int32, c int32) *int32 {
 	var earnings int32
 	for _, cost := range costs {
 		earnings += cost * c
 	}
-	return earnings
+	return &earnings
 }
 
 func getCoefficient(courierType string) int32 {

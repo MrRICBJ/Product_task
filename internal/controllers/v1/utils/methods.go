@@ -8,6 +8,12 @@ import (
 	"strconv"
 )
 
+const (
+	foot = "FOOT"
+	bike = "BIKE"
+	car  = "CAR"
+)
+
 func GetLimOff(limStr, offStr string) (int32, int32, error) {
 	var limit, offset int
 	var err error
@@ -47,7 +53,7 @@ func ConvertOrdersToOrderDtos(orders []entity.Order) []dto.OrderDto {
 }
 
 func ConvertToCourierDto(couriers []entity.Courier) []dto.CourierDto {
-	var courierDtos []dto.CourierDto
+	courierDtos := make([]dto.CourierDto, 0)
 	for _, courier := range couriers {
 		courierDto := dto.CourierDto{
 			CourierId:    courier.CourierId,
@@ -60,9 +66,9 @@ func ConvertToCourierDto(couriers []entity.Courier) []dto.CourierDto {
 	return courierDtos
 }
 
-func Validation(o *dto.CreateOrderRequest) error {
+func ValidationOrder(o *dto.CreateOrderRequest) error {
 	for _, order := range o.Orders {
-		if len(order.DeliveryHours) == 0 {
+		if len(order.DeliveryHours) == 0 || order.Cost < 0 || order.Regions < 0 || order.Weight < 0 {
 			return errors.New("")
 		}
 		for _, interval := range order.DeliveryHours {
@@ -77,3 +83,39 @@ func Validation(o *dto.CreateOrderRequest) error {
 	}
 	return nil
 }
+
+func ValidationCour(o *dto.CreateCourierRequest) error {
+	for _, cour := range o.Couriers {
+		if len(cour.WorkingHours) == 0 || len(cour.Regions) == 0 {
+			return errors.New("")
+		}
+		for _, interval := range cour.WorkingHours {
+			valid, err := regexp.MatchString(`^\d{2}:\d{2}-\d{2}:\d{2}$`, interval)
+			if err != nil || !valid {
+				return errors.New("")
+			}
+		}
+		for _, reg := range cour.Regions {
+			if reg < 0 {
+				return errors.New("")
+			}
+		}
+		if cour.CourierType != foot && cour.CourierType != bike && cour.CourierType != car {
+			return errors.New("")
+		}
+	}
+	return nil
+}
+
+// { post
+//     "orders": [
+//     {
+//       "weight": 1,
+//       "regions": 1,
+//       "delivery_hours": [
+//         "12:12-12:"
+//       ],
+//       "cost": 1
+//     }
+//   ]
+// }

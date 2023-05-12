@@ -19,15 +19,9 @@ func NewCourRepo(db *sqlx.DB) Repo {
 
 func (r *repository) GetAll(ctx context.Context, limit, offset int32) ([]entity.Courier, error) {
 	res := make([]entity.Courier, 0)
+
 	q := `SELECT courier_id, courier_type, regions, working_hours FROM couriers LIMIT $1 OFFSET $2`
 
-	//err := r.db.SelectContext(ctx, &res, q, limit, offset)
-	//if err != nil {
-	//	if err == sql.ErrNoRows {
-	//		return res, nil
-	//	}
-	//	return nil, err
-	//}
 	rows, err := r.db.QueryContext(ctx, q, limit, offset)
 	if err != nil {
 		return nil, err
@@ -50,15 +44,11 @@ func (r *repository) GetById(ctx context.Context, id int64) (*entity.Courier, er
 	cour := entity.Courier{}
 
 	q := `SELECT courier_id, courier_type, regions, working_hours FROM couriers WHERE courier_id = $1`
-	err := r.db.SelectContext(ctx, &cour, q, id)
+
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&cour.CourierId, &cour.CourierType, pq.Array(&cour.Regions), pq.Array(&cour.WorkingHours))
 	if err != nil {
 		return nil, err
 	}
-
-	//err := r.db.QueryRowContext(ctx, q, id).Scan(&cour.CourierId, &cour.CourierType, &cour.Regions, &cour.WorkingHours)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	return &cour, nil
 }
@@ -100,33 +90,21 @@ func (r *repository) GetMetaInf(ctx context.Context, id int64, startDate, endDat
 	costsList := make([]int32, 0)
 	res := entity.Courier{}
 
-	q := `SELECT o.cost, c.*
-FROM orders o
-JOIN couriers c ON o.cour_id = c.courier_id
-WHERE o.completed_time >= $1
-AND o.completed_time < $2
-AND o.cour_id = $3;`
+	q := `SELECT cost FROM orders WHERE completed_time >= $1 AND completed_time < $2 AND cour_id = $3;`
 
-	rows, _ := r.db.QueryContext(ctx, q, startDate, endDate, id)
+	_ = r.db.SelectContext(ctx, &costsList, q, startDate, endDate, id)
+	//rows, _ := tx.SelectContext(ctx, &costsList, q, startDate, endDate, id)
 	//if err != nil {
 	//	return nil, nil, err
 	//}
-	rows.Close()
 
-	for rows.Next() {
-		var cost int32
-		_ = rows.Scan(&cost, &res.CourierId, &res.CourierType, &res.Regions, &res.WorkingHours)
-		//if err != nil {
-		//	return nil, nil, err
-		//}
-		costsList = append(costsList, cost)
-	}
+	q = `SELECT * FROM couriers WHERE courier_id = $1;`
+
+	_ = r.db.QueryRowContext(ctx, q, id).Scan(&res.CourierId, &res.CourierType, pq.Array(&res.Regions), pq.Array(&res.WorkingHours))
+
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return costsList, &res, nil
 }
-
-//err = tx.SelectContext(ctx, &orders, q, id, startDate.UTC(), endDate.UTC())
-//if err != nil {
-//	tx.Rollback()
-//	return []entity.Order{}, 0, err
-//}

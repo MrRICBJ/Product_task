@@ -29,21 +29,6 @@ func (r *repository) GetAll(ctx context.Context, limit, offset int32) ([]entity.
 		}
 		return nil, err
 	}
-	//rows, err := r.db.QueryContext(ctx, q, limit, offset)
-	//if err != nil {
-	//	return res, err
-	//}
-	//
-	//defer rows.Close()
-	//
-	//for rows.Next() {
-	//	tmp := dto.OrderDto{}
-	//	err = rows.Scan(tmp.OrderId, &tmp.Weight, &tmp.Regions, pq.Array(&tmp.DeliveryHours), &tmp.Cost, &tmp.CompletedTime)
-	//	if err != nil {
-	//		return res, err
-	//	}
-	//	res = append(res, tmp)
-	//}
 
 	return res, nil
 }
@@ -55,10 +40,6 @@ func (r *repository) GetById(ctx context.Context, id int64) (*entity.Order, erro
 	if err != nil {
 		return nil, err
 	}
-	//err := r.db.QueryRowContext(ctx, q, id).Scan(&order.OrderId, &order.Weight, &order.Regions, pq.Array(&order.DeliveryHours), &order.Cost, &order.CompletedTime)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	return &order, nil
 }

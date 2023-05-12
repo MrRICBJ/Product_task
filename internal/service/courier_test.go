@@ -186,38 +186,50 @@ func TestGetCourierMetaInfo(t *testing.T) {
 		},
 	}
 
+	var r1 int32 = 0
+	var e1 int32 = 3800
+
+	var r2 int32 = 0
+	var e2 int32 = 5700
+
+	var r3 int32 = 0
+	var e3 int32 = 7600
+
+	var r4 int32 = 0
+	var e4 int32 = 0
+
 	expected := []dto.GetCourierMetaInfoResponse{
 		{
 			CourierId:    1,
 			CourierType:  "FOOT",
 			Regions:      []int32{2, 4},
 			WorkingHours: []string{"12:34:00", "12:12:00"},
-			Rating:       0,
-			Earnings:     3800,
+			Rating:       &r1,
+			Earnings:     &e1,
 		},
 		{
 			CourierId:    1,
 			CourierType:  "BIKE",
 			Regions:      []int32{2, 4},
 			WorkingHours: []string{"12:34:00", "12:12:00"},
-			Rating:       0,
-			Earnings:     5700,
+			Rating:       &r2,
+			Earnings:     &e2,
 		},
 		{
 			CourierId:    1,
 			CourierType:  "CAR",
 			Regions:      []int32{2, 4},
 			WorkingHours: []string{"12:34:00", "12:12:00"},
-			Rating:       0,
-			Earnings:     7600,
+			Rating:       &r3,
+			Earnings:     &e3,
 		},
 		{
 			CourierId:    1,
 			CourierType:  "",
 			Regions:      []int32{2, 4},
 			WorkingHours: []string{"12:34:00", "12:12:00"},
-			Rating:       0,
-			Earnings:     0,
+			Rating:       &r4,
+			Earnings:     &e4,
 		},
 	}
 

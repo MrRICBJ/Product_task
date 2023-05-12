@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"github.com/labstack/echo/v4"
-	"log"
 	"net/http"
 	"sss/internal/apperror"
 	"sss/internal/controllers/dto"
@@ -70,7 +69,11 @@ func (h *courHandler) createCourier(c echo.Context) error {
 
 	err := c.Bind(&courierReq)
 	if err != nil {
-		log.Fatal(err)
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
+	}
+
+	if err := utils.ValidationCour(&courierReq); err != nil {
+		return c.JSON(http.StatusBadRequest, apperror.BadRequestResponse{})
 	}
 
 	result, err := h.service.CreateCourier(context.Background(), &courierReq)
