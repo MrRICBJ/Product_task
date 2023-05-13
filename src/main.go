@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"net/http"
 	"os"
 	"os/signal"
 	"sss/config"
@@ -25,6 +27,7 @@ func main() {
 
 	cfg := config.New()
 
+	fmt.Println(cfg)
 	db, err := database.NewPostgresDB(cfg.Post)
 	if err != nil {
 		logrus.Fatalf("db opening error: %s\n", err.Error())
@@ -66,7 +69,14 @@ func app(repositoryOrder order.Repo, repositoryCour courier.Repo) *echo.Echo {
 	handlerCour := v1.NewCourHandler(courService)
 
 	e := echo.New()
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10)))
+	config := middleware.RateLimiterConfig{
+		Skipper: middleware.DefaultSkipper,
+		Store:   middleware.NewRateLimiterMemoryStore(10),
+		DenyHandler: func(context echo.Context, identifier string, err error) error {
+			return context.JSON(http.StatusTooManyRequests, nil)
+		},
+	}
+	e.Use(middleware.RateLimiterWithConfig(config))
 
 	handlerOrder.Register(e)
 	handlerCour.Register(e)

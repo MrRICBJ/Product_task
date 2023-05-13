@@ -7,8 +7,8 @@ package mock_courier
 import (
 	context "context"
 	reflect "reflect"
-	"sss/src/internal/controllers/dto"
-	"sss/src/internal/entity"
+	"sss/controllers/dto"
+	"sss/entity"
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"

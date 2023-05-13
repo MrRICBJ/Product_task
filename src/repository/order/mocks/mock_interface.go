@@ -7,8 +7,8 @@ package mock_order
 import (
 	context "context"
 	reflect "reflect"
-	"sss/src/internal/controllers/dto"
-	"sss/src/internal/entity"
+	"sss/controllers/dto"
+	"sss/entity"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -82,7 +82,7 @@ func (mr *MockRepoMockRecorder) GetById(ctx, id interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockRepo) Update(ctx context.Context, orders []entity.CompleteOrder) ([]entity.Order, error) {
+func (m *MockRepo) Update(ctx context.Context, orders []dto.CompleteOrder) ([]entity.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, orders)
 	ret0, _ := ret[0].([]entity.Order)

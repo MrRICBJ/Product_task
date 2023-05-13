@@ -14,8 +14,9 @@ import (
 func NewPostgresDB(cfg config.PostgresConfig) (*sqlx.DB, error) {
 	q := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode)
-
-	fmt.Print(q)
+	//q := "host=db port=5432 user=postgres dbname=postgres password=password sslmode=disable"
+	//fmt.Println("+++++++" + q + "++++++++++")
+	fmt.Println(q)
 	db, err := sqlx.Connect("postgres", q)
 	if err != nil {
 		return nil, err
