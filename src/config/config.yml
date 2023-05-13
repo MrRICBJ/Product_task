@@ -2,7 +2,7 @@ port: "8080"
 
 db:
     username: "postgres"
-    host: "localhost"
+    host: "db"
     port: "5432"
-    dbname: "yandexDB"
+    dbname: "postgres"
     sslmode: "disable"

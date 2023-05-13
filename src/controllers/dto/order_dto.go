@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"sss/entity"
 	"time"
 )
 
@@ -26,5 +25,13 @@ type CreateOrderRequest struct {
 }
 
 type CompleteOrderRequestDto struct {
-	CompleteInfo []entity.CompleteOrder `json:"complete_info"`
+	CompleteInfo []CompleteOrder `json:"complete_info"`
+}
+
+type CompleteOrder struct {
+	CourierId int64 `json:"courier_id"`
+
+	OrderId int64 `json:"order_id"`
+
+	CompleteTime time.Time `json:"complete_time"`
 }

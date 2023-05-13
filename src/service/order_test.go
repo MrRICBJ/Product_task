@@ -5,8 +5,9 @@ import (
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"sss/src/internal/controllers/dto"
-	"sss/src/internal/entity"
+	"sss/controllers/dto"
+	"sss/entity"
+	mock_order "sss/repository/order/mocks"
 	"testing"
 	time "time"
 )
@@ -209,7 +210,7 @@ func TestCompleteOrders(t *testing.T) {
 		},
 	}
 
-	comp := []entity.CompleteOrder{
+	comp := []dto.CompleteOrder{
 		{
 			OrderId:      1,
 			CourierId:    10,

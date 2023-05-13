@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      args:
+        LOCAL: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    links:
+      - db
+    networks:
+      - enrollment
+
+  db:
+    container_name: db
+    image: postgres:15.2-alpine
+    environment:
+      - POSTGRES_PASSWORD=password
+    networks:
+      - enrollment
+
+networks:
+  enrollment:
+    driver: bridge

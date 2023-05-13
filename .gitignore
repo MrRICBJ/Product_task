@@ -3,5 +3,5 @@
 order.http
 .gitignore
 
-#mockgen -source=internal/repository/courier/interface.go \
-#        -destination=internal/repository/courier/mocks/mock_interface.go
+#mockgen -source=server/repository/courier/interface.go \
+#        -destination=server/repository/courier/mocks/mock_interface.go

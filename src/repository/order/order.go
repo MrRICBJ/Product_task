@@ -77,7 +77,7 @@ func (r *repository) Create(ctx context.Context, orders *dto.CreateOrderRequest)
 	return orderRes, err
 }
 
-func (r *repository) Update(ctx context.Context, orders []entity.CompleteOrder) ([]entity.Order, error) {
+func (r *repository) Update(ctx context.Context, orders []dto.CompleteOrder) ([]entity.Order, error) {
 	res := make([]entity.Order, 0)
 
 	tx, err := r.db.BeginTx(ctx, nil)

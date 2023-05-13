@@ -5,8 +5,9 @@ import (
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"sss/src/internal/controllers/dto"
-	"sss/src/internal/entity"
+	"sss/controllers/dto"
+	"sss/entity"
+	mock_courier "sss/repository/courier/mocks"
 	"testing"
 	"time"
 )

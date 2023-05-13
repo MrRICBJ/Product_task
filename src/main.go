@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
@@ -30,9 +30,12 @@ func main() {
 		logrus.Fatalf("db opening error: %s\n", err.Error())
 	}
 
+	repoOrder := order.NewOrderRero(db)
+	repoCour := courier.NewCourRepo(db)
+
 	srv := new(server.Server)
 	go func() {
-		if err := srv.Run(viper.GetString("port"), app(db)); err != nil {
+		if err := srv.Run(viper.GetString("port"), app(repoOrder, repoCour)); err != nil {
 			logrus.Fatalf("error occured while running http server: %s", err.Error())
 		}
 	}()
@@ -55,24 +58,15 @@ func main() {
 
 }
 
-func app(db *sqlx.DB) *echo.Echo {
-
-	repositoryOrder := order.NewOrderRero(db)
-	repositoryCour := courier.NewCourRepo(db)
-
+func app(repositoryOrder order.Repo, repositoryCour courier.Repo) *echo.Echo {
 	orderService := service.NewOrderService(repositoryOrder)
 	courService := service.NewCourService(repositoryCour)
 
 	handlerOrder := v1.NewOrderHandler(orderService)
 	handlerCour := v1.NewCourHandler(courService)
 
-	//rate := limiter.Rate{
-	//	Limit:  10,
-	//	Period: time.Second,
-	//}
-
 	e := echo.New()
-	//e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10)))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10)))
 
 	handlerOrder.Register(e)
 	handlerCour.Register(e)
