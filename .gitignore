@@ -2,6 +2,4 @@
 .DS_Store
 order.http
 .gitignore
-
-#mockgen -source=server/repository/courier/interface.go \
-#        -destination=server/repository/courier/mocks/mock_interface.go
+gen
