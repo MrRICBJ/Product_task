@@ -2,8 +2,31 @@ CREATE TABLE couriers (
                           courier_id BIGSERIAL PRIMARY KEY,
                           courier_type VARCHAR(4) NOT NULL,
                           regions INT[] NOT NULL,
-                          working_hours TIME[] NOT NULL);
+                          working_hours VARCHAR(255)[] NOT NULL);
 
+
+-- {
+--   "couriers": [
+--     {
+--       "courier_type": "BIKE",
+--       "regions": [
+--         2,3
+--       ],
+--       "working_hours": [
+--         "12:00-20:00"
+--       ]
+--     },
+--      {
+--       "courier_type": "CAR",
+--       "regions": [
+--         3,4
+--       ],
+--       "working_hours": [
+--         "20:00-23:00"
+--       ]
+--     }
+--   ]
+-- }
 -- INSERT INTO couriers (courier_type, regions, working_hours)
 -- VALUES
 --     ('BIKE', ARRAY[1, 2], ARRAY[
@@ -25,7 +48,7 @@ CREATE TABLE orders (
                         cour_id BIGINT REFERENCES couriers (courier_id) DEFAULT NULL,
                         weight FLOAT NOT NULL,
                         regions INT NOT NULL,
-                        delivery_hours VARCHAR[] NOT NULL,
+                        delivery_hours VARCHAR(255)[] NOT NULL,
                         cost INT NOT NULL,
                         completed_time TIMESTAMPTZ DEFAULT NULL);
 

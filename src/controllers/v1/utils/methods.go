@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"regexp"
+	"sort"
 	"sss/controllers/dto"
 	"sss/entity"
 	"strconv"
@@ -13,6 +14,11 @@ const (
 	bike = "BIKE"
 	car  = "CAR"
 )
+
+type timeInterval struct {
+	start string
+	end   string
+}
 
 func GetLimOff(limStr, offStr string) (int32, int32, error) {
 	var limit, offset int
@@ -67,16 +73,13 @@ func ConvertToCourierDto(couriers []entity.Courier) []dto.CourierDto {
 }
 
 func ValidationOrder(o *dto.CreateOrderRequest) error {
+	timeRegex := regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$`)
 	for _, order := range o.Orders {
 		if len(order.DeliveryHours) == 0 || order.Cost < 0 || order.Regions < 0 || order.Weight < 0 {
 			return errors.New("")
 		}
 		for _, interval := range order.DeliveryHours {
-			valid, err := regexp.MatchString(`^\d{2}:\d{2}-\d{2}:\d{2}$`, interval)
-			if err != nil {
-				return errors.New("")
-			}
-			if !valid {
+			if err := timeRegex.MatchString(interval); !err {
 				return errors.New("")
 			}
 		}
@@ -85,26 +88,93 @@ func ValidationOrder(o *dto.CreateOrderRequest) error {
 }
 
 func ValidationCour(o *dto.CreateCourierRequest) error {
+	errChan1 := make(chan error)
+	errChan2 := make(chan error)
 	for _, cour := range o.Couriers {
 		if len(cour.WorkingHours) == 0 || len(cour.Regions) == 0 {
-			return errors.New("")
+			return errors.New("error")
 		}
-		for _, interval := range cour.WorkingHours {
-			valid, err := regexp.MatchString(`^\d{2}:\d{2}-\d{2}:\d{2}$`, interval)
-			if err != nil || !valid {
-				return errors.New("")
+
+		go func() {
+			if dunblTime(cour) {
+				errChan1 <- errors.New("Duplicate time interval found")
+			} else {
+				errChan1 <- nil
 			}
-		}
-		for _, reg := range cour.Regions {
-			if reg < 0 {
-				return errors.New("")
+		}()
+
+		go func() {
+			if dunblRegion(cour) {
+				errChan2 <- errors.New("Duplicate region interval found")
+			} else {
+				errChan2 <- nil
 			}
-		}
+		}()
+
 		if cour.CourierType != foot && cour.CourierType != bike && cour.CourierType != car {
-			return errors.New("")
+			return errors.New("error")
+		}
+
+		err := <-errChan1
+		if err != nil {
+			return err
+		}
+		err = <-errChan2
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func dunblRegion(cour dto.CreateCourierDto) bool {
+	m := make(map[int32]struct{})
+	for _, reg := range cour.Regions {
+		if reg < 0 {
+			return true
+		}
+		if _, ok := m[reg]; ok {
+			return true
+		}
+		m[reg] = struct{}{}
+	}
+	return false
+}
+
+func dunblTime(cour dto.CreateCourierDto) bool {
+
+	timeRegex := regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$`)
+	var intervals []timeInterval
+
+	for _, interval := range cour.WorkingHours {
+		if err := timeRegex.MatchString(interval); !err {
+			return true
+		}
+
+		start, end := parseTimeInterval(interval)
+		if start > end || start == end {
+			return true
+		}
+		intervals = append(intervals, timeInterval{start, end})
+	}
+
+	if len(intervals) > 1 {
+		sort.Slice(intervals, func(i, j int) bool {
+			return intervals[i].start < intervals[j].start
+		})
+
+		for i := 0; i < len(intervals)-1; i++ {
+			if intervals[i].end > intervals[i+1].start {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func parseTimeInterval(interval string) (string, string) {
+	parts := regexp.MustCompile(`-`).Split(interval, 2)
+	return parts[0], parts[1]
 }
 
 // { post
