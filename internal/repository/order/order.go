@@ -2,7 +2,6 @@ package order
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -22,12 +21,20 @@ func (r *repository) GetAll(ctx context.Context, limit, offset int32) ([]entity.
 	res := make([]entity.Order, 0)
 
 	q := `SELECT order_id, weight, regions, delivery_hours, cost, completed_time FROM orders LIMIT $1 OFFSET $2`
-	err := r.db.SelectContext(ctx, &res, q, limit, offset)
+
+	rows, err := r.db.QueryContext(ctx, q, limit, offset)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return res, nil
-		}
 		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		tmp := entity.Order{}
+		err = rows.Scan(&tmp.OrderId, &tmp.Weight, &tmp.Regions, pq.Array(&tmp.DeliveryHours), &tmp.Cost, &tmp.CompletedTime)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, tmp)
 	}
 
 	return res, nil
@@ -36,7 +43,7 @@ func (r *repository) GetAll(ctx context.Context, limit, offset int32) ([]entity.
 func (r *repository) GetById(ctx context.Context, id int64) (*entity.Order, error) {
 	var order entity.Order
 	q := `SELECT order_id, weight, regions, delivery_hours, cost, completed_time FROM orders WHERE order_id = $1`
-	err := r.db.GetContext(ctx, &order, q, id)
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&order.OrderId, &order.Weight, &order.Regions, pq.Array(&order.DeliveryHours), &order.Cost, &order.CompletedTime)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +97,7 @@ func (r *repository) Update(ctx context.Context, orders []dto.CompleteOrder) ([]
 	for _, v := range orders {
 		q := `SELECT cour_id, order_id, weight, regions, delivery_hours, cost, completed_time FROM orders WHERE order_id = $1`
 		err = tx.QueryRowContext(ctx, q, v.OrderId).
-			Scan(&id, &order.OrderId, &order.Weight, &order.Regions, &order.DeliveryHours, &order.Cost, &order.CompletedTime)
+			Scan(&id, &order.OrderId, &order.Weight, &order.Regions, pq.Array(&order.DeliveryHours), &order.Cost, &order.CompletedTime)
 		if err != nil {
 			tx.Rollback()
 			return nil, err

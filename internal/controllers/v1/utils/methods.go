@@ -50,11 +50,12 @@ func ConvertOrdersToOrderDtos(orders []entity.Order) []dto.OrderDto {
 			OrderId:       order.OrderId,
 			Weight:        order.Weight,
 			Regions:       order.Regions,
-			DeliveryHours: []string(order.DeliveryHours),
+			DeliveryHours: order.DeliveryHours,
 			Cost:          order.Cost,
 			CompletedTime: order.CompletedTime,
 		}
 	}
+
 	return orderDtos
 }
 
@@ -73,15 +74,12 @@ func ConvertToCourierDto(couriers []entity.Courier) []dto.CourierDto {
 }
 
 func ValidationOrder(o *dto.CreateOrderRequest) error {
-	timeRegex := regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$`)
 	for _, order := range o.Orders {
 		if len(order.DeliveryHours) == 0 || order.Cost < 0 || order.Regions < 0 || order.Weight < 0 {
 			return errors.New("")
 		}
-		for _, interval := range order.DeliveryHours {
-			if err := timeRegex.MatchString(interval); !err {
-				return errors.New("")
-			}
+		if dublTime(order.DeliveryHours) {
+			return errors.New("")
 		}
 	}
 	return nil
@@ -96,7 +94,7 @@ func ValidationCour(o *dto.CreateCourierRequest) error {
 		}
 
 		go func() {
-			if dunblTime(cour) {
+			if dublTime(cour.WorkingHours) {
 				errChan1 <- errors.New("Duplicate time interval found")
 			} else {
 				errChan1 <- nil
@@ -104,7 +102,7 @@ func ValidationCour(o *dto.CreateCourierRequest) error {
 		}()
 
 		go func() {
-			if dunblRegion(cour) {
+			if dublRegion(cour) {
 				errChan2 <- errors.New("Duplicate region interval found")
 			} else {
 				errChan2 <- nil
@@ -127,7 +125,7 @@ func ValidationCour(o *dto.CreateCourierRequest) error {
 	return nil
 }
 
-func dunblRegion(cour dto.CreateCourierDto) bool {
+func dublRegion(cour dto.CreateCourierDto) bool {
 	m := make(map[int32]struct{})
 	for _, reg := range cour.Regions {
 		if reg < 0 {
@@ -141,12 +139,12 @@ func dunblRegion(cour dto.CreateCourierDto) bool {
 	return false
 }
 
-func dunblTime(cour dto.CreateCourierDto) bool {
+func dublTime(cour []string) bool {
 
 	timeRegex := regexp.MustCompile(`^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$`)
 	var intervals []timeInterval
 
-	for _, interval := range cour.WorkingHours {
+	for _, interval := range cour {
 		if err := timeRegex.MatchString(interval); !err {
 			return true
 		}
@@ -176,16 +174,3 @@ func parseTimeInterval(interval string) (string, string) {
 	parts := regexp.MustCompile(`-`).Split(interval, 2)
 	return parts[0], parts[1]
 }
-
-// { post
-//     "orders": [
-//     {
-//       "weight": 1,
-//       "regions": 1,
-//       "delivery_hours": [
-//         "12:12-12:"
-//       ],
-//       "cost": 1
-//     }
-//   ]
-// }

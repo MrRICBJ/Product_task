@@ -1,6 +1,0 @@
-.idea
-.DS_Store
-order.http
-.gitignore
-gen
-db.sql

@@ -39,7 +39,7 @@ func (o *orderService) GetOrder(ctx context.Context, id int64) (*dto.OrderDto, e
 		OrderId:       order.OrderId,
 		Weight:        order.Weight,
 		Regions:       order.Regions,
-		DeliveryHours: []string(order.DeliveryHours),
+		DeliveryHours: order.DeliveryHours,
 		Cost:          order.Cost,
 		CompletedTime: order.CompletedTime,
 	}, err

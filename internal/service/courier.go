@@ -75,8 +75,8 @@ func (s *courService) GetCourierMetaInfo(ctx context.Context, id int64, startDat
 	if len(costs) == 0 {
 		return &result, nil
 	}
-	result.Rating = calculateRating(startDate, endDate, getCoefficient(result.CourierType), int32(len(costs)))
-	result.Earnings = calculateEarnings(costs, getCoefficient(result.CourierType))
+	result.Rating = calculateRating(startDate, endDate, getCoefficientRating(result.CourierType), int32(len(costs)))
+	result.Earnings = calculateEarnings(costs, getCoefficientEarnings(result.CourierType))
 	return &result, nil
 }
 
@@ -94,7 +94,7 @@ func calculateEarnings(costs []int32, c int32) *int32 {
 	return &earnings
 }
 
-func getCoefficient(courierType string) int32 {
+func getCoefficientEarnings(courierType string) int32 {
 	switch courierType {
 	case "FOOT":
 		return 2
@@ -102,6 +102,19 @@ func getCoefficient(courierType string) int32 {
 		return 3
 	case "CAR":
 		return 4
+	default:
+		return 0
+	}
+}
+
+func getCoefficientRating(courierType string) int32 {
+	switch courierType {
+	case "FOOT":
+		return 3
+	case "BIKE":
+		return 2
+	case "CAR":
+		return 1
 	default:
 		return 0
 	}
